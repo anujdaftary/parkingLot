@@ -8,6 +8,16 @@ public class Ticket extends BaseModel {
     private Vehicle vehicle;
     private ParkingSpot parkingSpot;
 
+    private Operator operator;
+
+    public Operator getOperator() {
+        return operator;
+    }
+
+    public void setOperator(Operator operator) {
+        this.operator = operator;
+    }
+
     public Date getEntryTime() {
         return entryTime;
     }

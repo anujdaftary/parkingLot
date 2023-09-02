@@ -1,20 +1,28 @@
 package com.scaler.parkinglot.services;
 
 import com.scaler.parkinglot.exceptions.InvalidGateException;
-import com.scaler.parkinglot.models.Gate;
-import com.scaler.parkinglot.models.Ticket;
-import com.scaler.parkinglot.models.Vehicle;
-import com.scaler.parkinglot.models.VehicleType;
+import com.scaler.parkinglot.models.*;
+import com.scaler.parkinglot.repositories.TicketRepository;
+import com.scaler.parkinglot.strategies.spotAssignmentStrategy.SpotAssignmentStrategy;
 
 import java.util.Date;
 
 public class TicketService {
     private VehicleService vehicleService;
     private GateService gateService;
+    private SpotAssignmentStrategy spotAssignmentStrategy;
+    private ParkingSpotService parkingSpotService;
+    private TicketRepository ticketRepository;
 
-    public TicketService(VehicleService vehicleServic, GateService gateService) {
+    public TicketService(VehicleService vehicleServic, GateService gateService,
+                         SpotAssignmentStrategy spotAssignmentStrategy,
+                         ParkingSpotService parkingSpotService,
+                         TicketRepository ticketRepository) {
         this.vehicleService = vehicleService;
         this.gateService = gateService;
+        this.spotAssignmentStrategy = spotAssignmentStrategy;
+        this.parkingSpotService = parkingSpotService;
+        this.ticketRepository = ticketRepository;
     }
 
     public Ticket generateTicket(String vehicleNumber,
@@ -48,8 +56,21 @@ public class TicketService {
         ticket.setOperator(gate.getOperator());
 
         //Assign the Parking Spot.
+        ParkingSpot parkingSpot = spotAssignmentStrategy.assignParkingSpot(vehicleType, gate);
 
+        parkingSpot.setParkingSpotStatus(ParkingSpotStatus.OCCUPIED);
+        parkingSpotService.markParkingSpotAsOccupied();
 
-        return null;
+        ticket.setParkingSpot(parkingSpot);
+
+        //Before we return the ticket, we should save it to DB.
+
+        ticket = ticketRepository.saveTicket(ticket);
+
+        return ticket;
     }
 }
+
+/*
+
+ */
